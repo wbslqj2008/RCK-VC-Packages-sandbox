@@ -107,6 +107,26 @@ def content_fingerprint(package: dict, payloads: list, *, legacy: bool = False) 
     return hashlib.sha256(json.dumps(identity, sort_keys=True, ensure_ascii=False).encode()).hexdigest().upper()
 
 
+REMOVAL_REQUESTS = 'removal-requests.json'
+PROTECTED_PACKAGES = ('rck.addon-manager',)
+
+
+def load_removal_requests(root: Path) -> list[str] | None:
+    """Package ids an admin asked to delete (Addon Manager '저장소에서 삭제'); None when the file is absent."""
+    path = root / REMOVAL_REQUESTS
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding='utf-8-sig'))
+    except json.JSONDecodeError as error:
+        raise ValueError(f'{REMOVAL_REQUESTS} 형식이 올바르지 않습니다: {error}') from error
+    ids = data.get('ids') if isinstance(data, dict) else None
+    if not isinstance(data, dict) or data.get('schemaVersion') != 1 or not isinstance(ids, list) or not all(
+            isinstance(i, str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', i) for i in ids):
+        raise ValueError(f'{REMOVAL_REQUESTS} 형식이 올바르지 않습니다 (schemaVersion 1, ids: 패키지 ID 목록).')
+    return list(dict.fromkeys(ids))
+
+
 def build(root: Path, output: Path, repository: str, tag: str, bump: str = 'patch', force_package: str = '', release_notes: str = '', *, force: bool = False, release_plan: Path | None = None) -> dict:
     manifest_path = root / 'manifest.json'
     manifest = json.loads(manifest_path.read_text(encoding='utf-8-sig'))
@@ -115,6 +135,23 @@ def build(root: Path, output: Path, repository: str, tag: str, bump: str = 'patc
     archived = load_manifest_history(root)
     metadata_paths = sorted((root / 'packages').glob('*/package.json'))
     available_ids = [json.loads(p.read_text(encoding='utf-8-sig'))['id'] for p in metadata_paths]
+    if not metadata_paths:
+        raise ValueError('packages/*/package.json을 하나도 찾지 못했습니다. 저장소 내용을 확인하십시오.')
+    # A package leaves the manifest only when its folder is gone AND an admin requested the removal;
+    # any other missing folder (edited id, broken checkout) fails the run before anything is written.
+    requests = load_removal_requests(root)
+    requested = requests or []
+    present = set(available_ids)
+    for package_id in requested:
+        entry = previous.get(package_id) or {}
+        if package_id.casefold() in PROTECTED_PACKAGES or entry.get('systemPackage'):
+            raise ValueError(f'시스템 패키지는 삭제할 수 없습니다: {package_id}')
+    removed = sorted(package_id for package_id in previous if package_id not in present)
+    for package_id in removed:
+        if package_id not in requested:
+            raise ValueError(f"패키지 폴더가 없습니다: {package_id}. 삭제하려면 Addon Manager의 '저장소에서 삭제'를 사용하십시오.")
+    # A requested package whose folder still exists stays published and stays requested.
+    removal_pending = [package_id for package_id in requested if package_id in present]
     # Explicit release-number corrections are applied once, after upload succeeds.
     # Keeping the plan in the repository must not reset later automatic patches.
     overrides = {}
@@ -126,13 +163,15 @@ def build(root: Path, output: Path, repository: str, tag: str, bump: str = 'patc
         versions = plan.get('versions')
         if not isinstance(versions, dict) or not versions:
             raise ValueError('Release plan must contain package versions')
+        pending_plan = plan['id'] not in manifest.get('appliedReleasePlans', [])
         for package_id, version in versions.items():
-            if package_id not in available_ids:
+            # An applied plan stays in the repository; a package it names may be deleted later.
+            if pending_plan and package_id not in available_ids:
                 raise ValueError(f'Unknown release plan package: {package_id}')
             if not isinstance(version, str):
                 raise ValueError(f'Invalid release plan version: {package_id}')
             version_tuple(version)
-        if plan['id'] not in manifest.get('appliedReleasePlans', []):
+        if pending_plan:
             if force_package or bump != 'patch' or force:
                 raise ValueError('Apply a pending release plan without package/bump/force overrides')
             plan_id = plan['id']
@@ -270,17 +309,24 @@ def build(root: Path, output: Path, repository: str, tag: str, bump: str = 'patc
         releases.append({'id': package_id, 'from': old['version'] if old else None, 'to': package['version']})
     if force_package and force_package not in seen:
         raise ValueError(f'Unknown package id: {force_package}')
+    for package_id in removed:
+        del previous[package_id]
     manifest['schemaVersion'] = 1
     if plan_id:
         manifest.setdefault('appliedReleasePlans', []).append(plan_id)
-    if changed:
+    if changed or removed:
         manifest['updatedAt'] = now
     manifest['packages'] = sorted(previous.values(), key=lambda p: (p['type'], p['name'].casefold()))
     (output / 'manifest.next.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     (output / 'package-updates.json').write_text(json.dumps(package_updates, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    requests_changed = requests is not None and requests != removal_pending
+    if requests is not None:
+        (output / 'removal-requests.next.json').write_text(
+            json.dumps({'schemaVersion': 1, 'ids': removal_pending}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     summary = {'changed': changed, 'count': len(changed), 'tag': tag, 'package_id': force_package, 'bump': bump,
                'releases': releases, 'manifest_changed': before != json.dumps(manifest, sort_keys=True),
-               'metadata_changed': bool(package_updates), 'release_plan_id': plan_id}
+               'metadata_changed': bool(package_updates), 'release_plan_id': plan_id, 'removed': removed,
+               'removal_pending': removal_pending, 'requests_changed': requests_changed}
     (output / 'summary.json').write_text(json.dumps(summary), encoding='utf-8')
     return summary
 
