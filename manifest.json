@@ -5,36 +5,6 @@
   ],
   "packages": [
     {
-      "id": "rck.sampletoolhelper",
-      "name": "SampleTool.Helper",
-      "type": "addon",
-      "version": "1.0.0",
-      "description": "",
-      "downloadUrl": "https://github.com/wbslqj2008/RCK-VC-Packages-sandbox/releases/download/auto-42550639560-1/rck.sampletoolhelper-1.0.0.zip",
-      "sha256": "D0DA84B88D2A96A7D1608D426E9EB9737FABFAF57952E3C848D5939E00ACB691",
-      "contentSha256": "9B72BA1F7395277B3DA92499AA4EA30DFB6BF10C16A561712A74BD62CEF71DE7",
-      "publishedAt": "2026-11-09T02:23:20Z",
-      "archiveType": "zip",
-      "restartRequired": true,
-      "systemPackage": false,
-      "vcVersions": [
-        "5.0",
-        "5.1"
-      ],
-      "releaseNotes": [
-        "테스트"
-      ],
-      "contentFiles": [
-        {
-          "destination": "vcRoot/SampleTool.Helper.dll",
-          "sha256": "D7C167B617ABBEA98DFCB41021193D444E7453D269B4064A6D59CEBC90B4DD89"
-        }
-      ],
-      "versions": [],
-      "mainDll": "SampleTool.Helper.dll",
-      "mainDllSha256": "D7C167B617ABBEA98DFCB41021193D444E7453D269B4064A6D59CEBC90B4DD89"
-    },
-    {
       "id": "rck.signallinker",
       "name": "SignalLinker",
       "type": "addon",

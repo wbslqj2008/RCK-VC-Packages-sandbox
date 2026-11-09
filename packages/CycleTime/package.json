@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "rck.cycletime",
+  "name": "CycleTime",
+  "type": "addon",
+  "version": "1.0.1",
+  "description": "VC Cycle Time 측정 및 관리",
+  "restartRequired": true,
+  "systemPackage": false,
+  "vcVersions": [
+    "5.0",
+    "5.1"
+  ],
+  "releaseNotes": [
+    "CycleTime·ShortCut: 홈 탭 버튼을 RCK 그룹으로 그룹화 (아이콘 추가)"
+  ],
+  "files": [
+    {
+      "source": "payload/Plugin.CycleTime.dll",
+      "destination": "vcRoot/Plugin.CycleTime.dll"
+    },
+    {
+      "source": "payload/Icons/rckCycleTime.svg",
+      "destination": "vcRoot/Icons/rckCycleTime.svg"
+    }
+  ]
+}

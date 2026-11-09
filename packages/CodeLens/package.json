@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "rck.codelens",
+  "name": "CodeLens",
+  "type": "addon",
+  "version": "2.1.2",
+  "description": "우클릭으로 Python 스크립트 열기",
+  "restartRequired": true,
+  "systemPackage": false,
+  "vcVersions": [
+    "5.0",
+    "5.1"
+  ],
+  "releaseNotes": [
+    "Local Studio와 충돌하는 문제 수정"
+  ],
+  "files": [
+    {
+      "source": "payload/Plugin.CodeLens.dll",
+      "destination": "vcRoot/Plugin.CodeLens.dll"
+    }
+  ]
+}

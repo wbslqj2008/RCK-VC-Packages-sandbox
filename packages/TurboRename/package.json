@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "rck.turborename",
+  "name": "TurboRename",
+  "type": "addon",
+  "version": "2.0.1",
+  "description": "Component 이름 일괄 변경",
+  "restartRequired": true,
+  "systemPackage": false,
+  "vcVersions": [
+    "5.0",
+    "5.1"
+  ],
+  "releaseNotes": [
+    "SortMate 병합 및 도킹 방식 수정"
+  ],
+  "files": [
+    {
+      "source": "payload/Plugin.TurboRename.dll",
+      "destination": "vcRoot/Plugin.TurboRename.dll"
+    }
+  ]
+}
