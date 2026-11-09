@@ -18,9 +18,7 @@
       "destination": "vcRoot/SampleTool.Helper.dll"
     }
   ],
-  "publishRequest": {
-    "bump": "patch",
-    "notes": "테스트",
-    "requestedBy": "wbslqj2008"
-  }
+  "releaseNotes": [
+    "테스트"
+  ]
 }

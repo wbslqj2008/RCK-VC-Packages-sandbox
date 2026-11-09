@@ -5,6 +5,36 @@
   ],
   "packages": [
     {
+      "id": "rck.sampletoolhelper",
+      "name": "SampleTool.Helper",
+      "type": "addon",
+      "version": "1.0.0",
+      "description": "",
+      "downloadUrl": "https://github.com/wbslqj2008/RCK-VC-Packages-sandbox/releases/download/auto-42550639560-1/rck.sampletoolhelper-1.0.0.zip",
+      "sha256": "D0DA84B88D2A96A7D1608D426E9EB9737FABFAF57952E3C848D5939E00ACB691",
+      "contentSha256": "9B72BA1F7395277B3DA92499AA4EA30DFB6BF10C16A561712A74BD62CEF71DE7",
+      "publishedAt": "2026-11-09T02:23:20Z",
+      "archiveType": "zip",
+      "restartRequired": true,
+      "systemPackage": false,
+      "vcVersions": [
+        "5.0",
+        "5.1"
+      ],
+      "releaseNotes": [
+        "테스트"
+      ],
+      "contentFiles": [
+        {
+          "destination": "vcRoot/SampleTool.Helper.dll",
+          "sha256": "D7C167B617ABBEA98DFCB41021193D444E7453D269B4064A6D59CEBC90B4DD89"
+        }
+      ],
+      "versions": [],
+      "mainDll": "SampleTool.Helper.dll",
+      "mainDllSha256": "D7C167B617ABBEA98DFCB41021193D444E7453D269B4064A6D59CEBC90B4DD89"
+    },
+    {
       "id": "rck.signallinker",
       "name": "SignalLinker",
       "type": "addon",
@@ -30,7 +60,19 @@
           "sha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
         }
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.0.1",
+          "contentFiles": [
+            {
+              "destination": "vcRoot/Plugin.SignalLinker.dll",
+              "sha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
+            }
+          ],
+          "mainDll": "Plugin.SignalLinker.dll",
+          "mainDllSha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
+        }
+      ],
       "mainDll": "Plugin.SignalLinker.dll",
       "mainDllSha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
     },
@@ -59,10 +101,20 @@
           "sha256": "F5B0A731F8D9283AF7D937EA53BC2E3FCCAE822D303D2BAB689199965CAFA5DC"
         }
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.0.2",
+          "contentFiles": [
+            {
+              "destination": "ecatalog/AddonManager/Rendering Optimization.vcmx",
+              "sha256": "F5B0A731F8D9283AF7D937EA53BC2E3FCCAE822D303D2BAB689199965CAFA5DC"
+            }
+          ]
+        }
+      ],
       "developer": "이준용 연구원",
       "documentationUrl": "https://raw.githubusercontent.com/wbslqj2008/RCK-VC-Packages/main/packages/RenderingOptimization/Rendering_Optimization_%EC%82%AC%EC%9A%A9%EC%95%88%EB%82%B4.pdf"
     }
   ],
-  "updatedAt": "2026-11-09T01:33:37Z"
+  "updatedAt": "2026-11-09T02:23:20Z"
 }
