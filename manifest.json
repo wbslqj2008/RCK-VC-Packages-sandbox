@@ -1026,48 +1026,6 @@
       "mainDllSha256": "8C93B3DDD09894E1D93CC2CC71C318465C30CCAD5E9116DCFBF1F30BEFDADA44"
     },
     {
-      "id": "rck.signallinker",
-      "name": "SignalLinker",
-      "type": "addon",
-      "version": "1.0.1",
-      "description": "Signal 연결 관리",
-      "downloadUrl": "https://github.com/wbslqj2008/RCK-VC-Packages-sandbox/releases/download/auto-42546184354-1/rck.signallinker-1.0.1.zip",
-      "sha256": "D0DCF22A9929A68EFA0C790B25EE9E4A1472F6AFD249B895AAAED7F9A424B29C",
-      "contentSha256": "0C5952D4FC6C8645AB51A9C452534081C03BED4E511488FBFD4965BB04EEDB2E",
-      "publishedAt": "2026-11-09T01:33:37Z",
-      "archiveType": "zip",
-      "restartRequired": true,
-      "systemPackage": false,
-      "vcVersions": [
-        "5.0",
-        "5.1"
-      ],
-      "releaseNotes": [
-        "Add files via upload"
-      ],
-      "contentFiles": [
-        {
-          "destination": "vcRoot/Plugin.SignalLinker.dll",
-          "sha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
-        }
-      ],
-      "versions": [
-        {
-          "version": "1.0.1",
-          "contentFiles": [
-            {
-              "destination": "vcRoot/Plugin.SignalLinker.dll",
-              "sha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
-            }
-          ],
-          "mainDll": "Plugin.SignalLinker.dll",
-          "mainDllSha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
-        }
-      ],
-      "mainDll": "Plugin.SignalLinker.dll",
-      "mainDllSha256": "EEEA4584807EF5D80CFA34E22ADA220FC9B2DF08728C1A3686288FAF5AC29E3B"
-    },
-    {
       "id": "rck.turborename",
       "name": "TurboRename",
       "type": "addon",
@@ -1149,5 +1107,5 @@
       "documentationUrl": "https://raw.githubusercontent.com/wbslqj2008/RCK-VC-Packages/main/packages/RenderingOptimization/Rendering_Optimization_%EC%82%AC%EC%9A%A9%EC%95%88%EB%82%B4.pdf"
     }
   ],
-  "updatedAt": "2026-11-09T02:27:39Z"
+  "updatedAt": "2026-11-09T06:01:04Z"
 }
