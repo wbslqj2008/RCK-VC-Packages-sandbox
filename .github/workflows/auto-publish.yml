@@ -1,0 +1,121 @@
+name: 패키지 업로드 자동 배포
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**'
+      - 'manifest.json'
+      - 'release-plan.json'
+      - 'scripts/auto_publish.py'
+      - 'scripts/apply_publish.py'
+      - '.github/workflows/auto-publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  # The bot's own manifest commit gets a private group: its run is skipped by the job guard
+  # below, and sharing the deploy group would cancel a pending deploy run queued behind it.
+  group: "${{ (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore: auto-publish addon packages')) && format('rck-bot-{0}', github.run_id) || 'rck-manifest-update' }}"
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Skip the bot's own manifest commit so an App-token push does not re-run this job.
+    if: "github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore: auto-publish addon packages')"
+    runs-on: ubuntu-latest
+    # PUBLISH_APP_ID / PUBLISH_APP_PRIVATE_KEY live in this Environment, restricted to main.
+    environment: publish-bot
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Scan the latest main contents so concurrent uploads are coalesced safely.
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: 변경된 패키지 생성
+        id: packages
+        env:
+          BUMP: 'patch'
+          PACKAGE_ID: ''
+          RELEASE_NOTES_INPUT: ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="auto-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          RELEASE_NOTES="$RELEASE_NOTES_INPUT"
+          if [ -z "$(printf '%s' "$RELEASE_NOTES" | tr -d '[:space:]')" ]; then
+            RELEASE_NOTES="$(git log -1 --pretty=%s -- packages)"
+          fi
+          python scripts/auto_publish.py --output-dir .auto-release --repository "$GITHUB_REPOSITORY" --tag "$TAG" --bump "$BUMP" --package-id "$PACKAGE_ID" --release-notes "$RELEASE_NOTES" --release-plan release-plan.json
+          COUNT=$(python -c 'import json; print(json.load(open(".auto-release/summary.json"))["count"])')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          python -c 'import json; print("manifest_changed=" + str(json.load(open(".auto-release/summary.json"))["manifest_changed"]).lower())' >> "$GITHUB_OUTPUT"
+          python -c 'import json; print("metadata_changed=" + str(json.load(open(".auto-release/summary.json"))["metadata_changed"]).lower())' >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          result = json.load(open('.auto-release/summary.json'))
+          print('## 배포 결과')
+          print(f"버전 증가: {result['bump']}; 지정 패키지: {result['package_id'] or '변경된 패키지 전체'}")
+          if result.get('release_plan_id'):
+              print(f"지정 버전 적용: {result['release_plan_id']}")
+          for name in result['changed']:
+              print(f'- {name}')
+          for package in result['releases']:
+              print(f"- {package['id']}: {package['from'] or '첫 배포'} → {package['to']}")
+          if not result['changed']:
+              print('변경된 파일이 없어 배포하지 않았습니다.')
+              if result['manifest_changed']:
+                  print('기존 배포의 파일 비교 기록을 갱신합니다.')
+              if result['metadata_changed']:
+                  print('package.json 버전을 현재 배포 버전에 맞춥니다. 새 버전을 발행하지 않습니다.')
+          PY
+      - name: GitHub Release 게시
+        if: steps.packages.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.packages.outputs.tag }}
+          SOURCE_SHA: ${{ steps.packages.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" .auto-release/*.zip --target "$SOURCE_SHA" --title "자동 패키지 업데이트 $TAG" --notes '변경된 Add-on 및 eCatalog 패키지를 자동 생성했습니다.'
+      - name: 배포 봇 설정 확인
+        id: publish-app
+        shell: bash
+        run: echo "has_app=${{ secrets.PUBLISH_APP_ID != '' }}" >> "$GITHUB_OUTPUT"
+      - name: 배포 봇 토큰
+        id: app-token
+        if: steps.publish-app.outputs.has_app == 'true'
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.PUBLISH_APP_ID }}
+          private-key: ${{ secrets.PUBLISH_APP_PRIVATE_KEY }}
+      - name: Manifest 반영
+        if: steps.packages.outputs.count != '0' || steps.packages.outputs.manifest_changed == 'true' || steps.packages.outputs.metadata_changed == 'true'
+        env:
+          TAG: ${{ steps.packages.outputs.tag }}
+          PUSH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/apply_publish.py --repo-root . --output-dir .auto-release
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add manifest.json packages
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: auto-publish addon packages $TAG"
+          git config --local --unset-all http.https://github.com/.extraheader || true
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase origin main
+          done
+          exit 1
+

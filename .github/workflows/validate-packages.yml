@@ -1,0 +1,20 @@
+name: 자동 배포 검증
+on:
+  pull_request:
+    paths: ['packages/**', 'scripts/**', '.github/workflows/**']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m unittest discover -s scripts -p 'test_*.py' -v
+      - run: python scripts/auto_publish.py --output-dir .preview --repository "$GITHUB_REPOSITORY" --tag preview-only
+      - name: 게시 예정 요약
+        run: |
+          python -c "import json; r=json.load(open('.preview/summary.json'))['releases']; print('## 게시 예정'); [print('- %s: %s → %s' % (p['id'], p['from'] or '첫 배포', p['to'])) for p in r]" >> "$GITHUB_STEP_SUMMARY"
+
