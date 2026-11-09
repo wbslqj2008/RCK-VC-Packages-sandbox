@@ -12,7 +12,7 @@
     "5.1"
   ],
   "releaseNotes": [
-    "창배율 변경, FHD 에서 90%로 동작하게 fix"
+    "운영 저장소의 애드온 전체를 샌드박스로 복사, SampleTool.Helper 삭제"
   ],
   "files": [
     {
