@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "rck.sampletoolhelper",
+  "name": "SampleTool.Helper",
+  "type": "addon",
+  "version": "1.0.0",
+  "description": "",
+  "mainDll": "SampleTool.Helper.dll",
+  "restartRequired": true,
+  "systemPackage": false,
+  "vcVersions": [
+    "5.0",
+    "5.1"
+  ],
+  "files": [
+    {
+      "source": "payload/SampleTool.Helper.dll",
+      "destination": "vcRoot/SampleTool.Helper.dll"
+    }
+  ],
+  "publishRequest": {
+    "bump": "patch",
+    "notes": "테스트",
+    "requestedBy": "wbslqj2008"
+  }
+}
